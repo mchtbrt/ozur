@@ -111,21 +111,22 @@ body{
 
 /* ---- final ---- */
 #flash{
-  position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0;
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:60;pointer-events:none;opacity:0;
   background:radial-gradient(circle,#fff 0%,rgba(255,255,255,0) 70%);
 }
 #finale{
-  position:fixed;inset:0;z-index:40;pointer-events:none;
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4vh;
+  position:fixed;top:0;left:0;right:0;bottom:0;z-index:40;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
   padding-top:30vh;overflow:hidden;
 }
 #finale::before{
-  content:'';position:absolute;inset:0;
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
   background:radial-gradient(ellipse at center,rgba(255,120,160,.16),rgba(255,120,160,0) 60%);
   opacity:0;transition:opacity 1.2s;
 }
 #finale.show::before{opacity:1}
-#finalText{display:flex;flex-direction:column;align-items:center;gap:1.2vh}
+#finalText{display:flex;flex-direction:column;align-items:center;margin-bottom:4vh}
+#finalText span+span{margin-top:1.2vh}
 #finalText span{
   font-weight:800;text-align:center;line-height:1.15;letter-spacing:.06em;
   font-size:clamp(30px,7.5vw,86px);
@@ -180,6 +181,26 @@ body{
 </div>
 
 <script>
+if(!Element.prototype.animate){
+  Element.prototype.animate=function(kf,opt){
+    var el=this,dur=(opt&&opt.duration)||300,dummy={_cb:null,
+      get onfinish(){return this._cb;},
+      set onfinish(f){this._cb=f;}
+    };
+    var last=(kf&&kf.length)?kf[kf.length-1]:{};
+    setTimeout(function(){
+      try{
+        for(var k in last){
+          if(k==='offset')continue;
+          if(k==='transform')el.style.transform=last[k];
+          else if(k==='opacity')el.style.opacity=last[k];
+        }
+      }catch(e){}
+      if(dummy._cb)dummy._cb();
+    },Math.min(dur,3000));
+    return dummy;
+  };
+}
 const WORDS=["SENİ","ÜZDÜĞÜM","İÇİN","ÖZÜR","DİLERİM","SENİ","ÇOK","ÖZLEDİM","AFFET","BENİ"];
 const PAL=[
   ["#ff9ebb","#c9184a"],
@@ -348,6 +369,9 @@ function spawnBalloons(){
     el.addEventListener('pointerdown',()=>{
       if(b.done)return;b.done=true;popBalloon(b);
     });
+    el.addEventListener('touchstart',()=>{
+      if(b.done)return;b.done=true;popBalloon(b);
+    },{passive:true});
     document.body.appendChild(el);
     balloons.push(b);
   }
@@ -399,6 +423,9 @@ function startBig(){
   el.addEventListener('pointerdown',()=>{
     if(bigDone)return;bigDone=true;bigPop(el);
   });
+  el.addEventListener('touchstart',()=>{
+    if(bigDone)return;bigDone=true;bigPop(el);
+  },{passive:true});
 }
 function bigPop(el){
   const r=el.getBoundingClientRect();
