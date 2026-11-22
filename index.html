@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Karıcığım</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 29.6'><path fill='%23ff5d8f' d='M23.6 0c-3.4 0-6.3 2.7-7.6 5.6C14.7 2.7 11.8 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.4 9.5 11.9 16 21.2 6.1-9.3 16-12.1 16-21.2C32 3.8 28.2 0 23.6 0z'/></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:'Segoe UI',system-ui,'Trebuchet MS',sans-serif;
+  background:linear-gradient(180deg,#10123a 0%,#23164e 38%,#54255f 68%,#a4466b 100%);
+  user-select:none;-webkit-user-select:none;position:relative;
+}
+.star{position:absolute;background:#fff;border-radius:50%;animation:tw linear infinite}
+@keyframes tw{0%,100%{opacity:.12}50%{opacity:1}}
+
+/* ---- cümle alanı ---- */
+#sentence{
+  position:fixed;top:7vh;left:0;right:0;z-index:20;pointer-events:none;
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;
+  padding:0 3vw;font-weight:800;line-height:1.7;letter-spacing:.05em;
+  font-size:clamp(19px,3.6vw,44px);
+}
+.slot{position:relative;padding:2px 10px}
+.slot i{font-style:normal;visibility:hidden}
+.slot::after{
+  content:'';position:absolute;left:12%;right:12%;bottom:-4px;height:4px;border-radius:4px;
+  background:rgba(255,255,255,.15);transition:background .35s,box-shadow .35s;
+}
+.slot.filled::after{
+  background:linear-gradient(90deg,#ffd6e0,#ff5d8f);
+  box-shadow:0 0 14px rgba(255,93,143,.75);
+}
+.slot.filled i{
+  visibility:visible;
+  background:linear-gradient(180deg,#ffffff,#ffb3c1);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 2px 10px rgba(255,107,139,.5));
+  animation:slotIn .5s cubic-bezier(.2,.9,.3,1.45);
+}
+@keyframes slotIn{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ---- balonlar ---- */
+.balloon{
+  position:absolute;bottom:0;z-index:10;cursor:pointer;
+  transform-origin:50% -70px;
+  animation:sway 2.4s ease-in-out infinite alternate;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  will-change:bottom;
+}
+@keyframes sway{from{transform:rotate(-5deg) translateX(-10px)}to{transform:rotate(5deg) translateX(10px)}}
+.body{
+  position:relative;width:100%;padding-top:120%;
+  border-radius:50% 50% 50% 50%/55% 55% 45% 45%;
+  background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.85),var(--c1) 36%,var(--c2) 94%);
+  box-shadow:inset -10px -16px 26px rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.22);
+}
+.body::after{
+  content:'';position:absolute;top:11%;left:16%;width:20%;height:12%;
+  background:rgba(255,255,255,.75);border-radius:50%;
+  filter:blur(3px);transform:rotate(-28deg);
+}
+.knot{
+  position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  width:15%;height:9px;margin-top:-3px;background:var(--c2);
+  clip-path:polygon(50% 0,100% 100%,0 100%);
+}
+.string{
+  position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  width:2px;height:85px;background:rgba(255,255,255,.5);
+}
+.balloon.big{
+  position:fixed;left:50%;top:44%;bottom:auto;z-index:30;
+  width:min(58vw,320px);animation:none;
+}
+.balloon.big .body{animation:sway 2.6s ease-in-out infinite alternate}
+.balloon.big .string{height:150px}
+.balloon.big .knot{height:13px}
+.balloon.pop .body{animation:balloonPop .2s ease-out forwards}
+.balloon.pop .knot,.balloon.pop .string{opacity:0;transition:opacity .12s}
+.balloon.pop{pointer-events:none}
+@keyframes balloonPop{40%{transform:scale(1.3)}100%{transform:scale(1.9);opacity:0}}
+
+/* ---- uçuşan kelime ---- */
+.flyer{
+  position:fixed;z-index:50;pointer-events:none;
+  font-weight:800;font-size:clamp(22px,4.5vw,48px);letter-spacing:.05em;
+  color:#fff;text-shadow:0 0 22px rgba(255,140,170,.95),0 2px 6px rgba(0,0,0,.4);
+  transform:translate(-50%,-50%);
+}
+.particle{position:fixed;z-index:55;pointer-events:none}
+.ring{
+  position:fixed;width:30px;height:30px;border:4px solid rgba(255,255,255,.9);
+  border-radius:50%;z-index:55;pointer-events:none;
+}
+
+/* ---- ipuçları ---- */
+#hint,#hint2{
+  position:fixed;left:50%;bottom:6vh;z-index:25;
+  color:rgba(255,255,255,.92);letter-spacing:.08em;text-align:center;
+  font-size:clamp(14px,2.3vw,21px);text-shadow:0 2px 10px rgba(0,0,0,.5);
+  opacity:0;transition:opacity .7s;
+}
+#hint{opacity:1;animation:bob 1.7s ease-in-out infinite alternate}
+#hint.hide{opacity:0}
+#hint2.show{opacity:1;animation:bob 1.4s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translate(-50%,0)}to{transform:translate(-50%,12px)}}
+
+/* ---- final ---- */
+#flash{
+  position:fixed;inset:0;z-index:60;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,#fff 0%,rgba(255,255,255,0) 70%);
+}
+#finale{
+  position:fixed;inset:0;z-index:40;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4vh;
+  padding-top:30vh;overflow:hidden;
+}
+#finale::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(255,120,160,.16),rgba(255,120,160,0) 60%);
+  opacity:0;transition:opacity 1.2s;
+}
+#finale.show::before{opacity:1}
+#finalText{display:flex;flex-direction:column;align-items:center;gap:1.2vh}
+#finalText span{
+  font-weight:800;text-align:center;line-height:1.15;letter-spacing:.06em;
+  font-size:clamp(30px,7.5vw,86px);
+  background:linear-gradient(180deg,#fff7f9,#ffd9e2 45%,#ff8fab);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 4px 26px rgba(255,93,143,.5));
+  opacity:0;transform:scale(.3);
+}
+#finale.show span{animation:zoomIn .8s cubic-bezier(.2,.9,.3,1.25) forwards}
+#finale.show span:nth-child(2){animation-delay:.35s}
+@keyframes zoomIn{to{opacity:1;transform:scale(1)}}
+#finale svg{width:clamp(110px,24vw,210px);opacity:0}
+#finale.show svg{
+  animation:heartIn .55s .75s cubic-bezier(.2,.9,.3,1.3) forwards,heartBeat 1.2s 1.3s infinite;
+  filter:drop-shadow(0 0 32px rgba(255,50,90,.85));
+}
+@keyframes heartIn{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:scale(1)}}
+@keyframes heartBeat{
+  0%,100%{transform:scale(1)}
+  12%{transform:scale(1.22)}
+  24%{transform:scale(1)}
+  36%{transform:scale(1.35)}
+  52%{transform:scale(1)}
+}
+.fh{position:fixed;z-index:35;pointer-events:none}
+.fh svg{display:block;filter:drop-shadow(0 0 10px rgba(255,80,120,.75))}
+</style>
+</head>
+<body>
+
+<div id="sentence"></div>
+<div id="hint">Her balonda sana bir sözüm saklı — patlat bakalım!</div>
+<div id="hint2">Dev balonu patlat!</div>
+<div id="flash"></div>
+
+<div id="finale">
+  <div id="finalText">
+    <span>SENİ ÇOK SEVİYORUM</span>
+    <span>KARICIĞIM</span>
+  </div>
+  <svg viewBox="0 0 32 29.6" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#ff4d6d"/>
+        <stop offset="1" stop-color="#b3123f"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#hg)" d="M23.6 0c-3.4 0-6.3 2.7-7.6 5.6C14.7 2.7 11.8 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.4 9.5 11.9 16 21.2 6.1-9.3 16-12.1 16-21.2C32 3.8 28.2 0 23.6 0z"/>
+    <text x="16" y="14" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="9" font-weight="800" letter-spacing=".5" fill="#ffffff" style="text-shadow:0 1px 2px rgba(0,0,0,.35)">B&#38;M</text>
+  </svg>
+</div>
+
+<script>
+const WORDS=["SENİ","ÜZDÜĞÜM","İÇİN","ÖZÜR","DİLERİM","SENİ","ÇOK","ÖZLEDİM","AFFET","BENİ"];
+const PAL=[
+  ["#ff9ebb","#c9184a"],
+  ["#ffd166","#e07a00"],
+  ["#a2d2ff","#3a6bd4"],
+  ["#a8e6cf","#2f9e63"],
+  ["#e0aaff","#8e44c9"],
+  ["#ffb4a2","#e05c3a"]
+];
+const HEART=f=>'<svg width="100%" height="100%" viewBox="0 0 32 29.6" xmlns="http://www.w3.org/2000/svg"><path fill="'+f+'" d="M23.6 0c-3.4 0-6.3 2.7-7.6 5.6C14.7 2.7 11.8 0 8.4 0 3.8 0 0 3.8 0 8.4c0 9.4 9.5 11.9 16 21.2 6.1-9.3 16-12.1 16-21.2C32 3.8 28.2 0 23.6 0z"/></svg>';
+
+const hint=document.getElementById('hint'),hint2=document.getElementById('hint2');
+const finale=document.getElementById('finale');
+let idx=0,balloons=[],finaleOn=false,bigDone=false;
+
+/* cümle yuvaları */
+const sent=document.getElementById('sentence'),slots=[];
+WORDS.forEach(w=>{
+  const s=document.createElement('span');s.className='slot';
+  const i=document.createElement('i');i.textContent=w;
+  s.appendChild(i);sent.appendChild(s);slots.push(s);
+});
+
+/* yıldızlar */
+for(let n=0;n<90;n++){
+  const st=document.createElement('div');st.className='star';
+  const sz=.8+Math.random()*1.7;
+  st.style.width=sz+'px';st.style.height=sz+'px';
+  st.style.left=Math.random()*100+'vw';
+  st.style.top=Math.random()*62+'vh';
+  st.style.animationDuration=(1.6+Math.random()*3.4)+'s';
+  st.style.animationDelay='-'+(Math.random()*4)+'s';
+  document.body.appendChild(st);
+}
+
+/* ses */
+let actx=null;
+function sfx(kind){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    actx=actx||new AC();if(actx.state==='suspended')actx.resume();
+    const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);
+    if(kind==='pop'){
+      o.type='triangle';
+      o.frequency.setValueAtTime(430+Math.random()*260,t);
+      o.frequency.exponentialRampToValueAtTime(80,t+.14);
+      g.gain.setValueAtTime(.4,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.16);
+      o.start(t);o.stop(t+.18);
+    }else if(kind==='chime'){
+      o.type='sine';
+      o.frequency.setValueAtTime(880,t);
+      o.frequency.linearRampToValueAtTime(1318,t+.22);
+      g.gain.setValueAtTime(.12,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.4);
+      o.start(t);o.stop(t+.42);
+    }else if(kind==='boom'){
+      o.type='sine';
+      o.frequency.setValueAtTime(160,t);
+      o.frequency.exponentialRampToValueAtTime(35,t+.5);
+      g.gain.setValueAtTime(.75,t);
+      g.gain.exponentialRampToValueAtTime(.001,t+.65);
+      o.start(t);o.stop(t+.7);
+    }
+  }catch(e){}
+}
+
+/* efektler */
+function ring(x,y,max){
+  const r=document.createElement('div');r.className='ring';
+  r.style.left=x+'px';r.style.top=y+'px';
+  document.body.appendChild(r);
+  r.animate([
+    {transform:'translate(-50%,-50%) scale(.4)',opacity:.9},
+    {transform:'translate(-50%,-50%) scale('+(max||3)+')',opacity:0}
+  ],{duration:460,easing:'ease-out'}).onfinish=()=>r.remove();
+}
+function burst(x,y,colors,count,spread){
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');p.className='particle';
+    const s=3+Math.random()*7;
+    p.style.width=s+'px';
+    p.style.height=(Math.random()<.3?s*2.6:s)+'px';
+    p.style.background=colors[Math.random()*colors.length|0];
+    if(Math.random()<.5)p.style.borderRadius='50%';
+    p.style.left=x+'px';p.style.top=y+'px';
+    document.body.appendChild(p);
+    const a=Math.random()*Math.PI*2,d=spread*(.35+Math.random()*.75);
+    const dx=Math.cos(a)*d,dy=Math.sin(a)*d-20;
+    p.animate([
+      {transform:'translate(-50%,-50%) scale(1) rotate(0deg)',opacity:1},
+      {transform:'translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px)) scale(.1) rotate('+(Math.random()*300-150)+'deg)',opacity:.85}
+    ],{duration:520+Math.random()*480,easing:'cubic-bezier(.15,.6,.4,1)'}).onfinish=()=>p.remove();
+  }
+}
+function heartBurst(x,y){
+  for(let i=0;i<12;i++){
+    const el=document.createElement('div');el.className='fh';
+    const s=16+Math.random()*18;
+    el.style.width=s+'px';el.style.height=s+'px';
+    el.style.left=x+'px';el.style.top=y+'px';
+    el.innerHTML=HEART(['#ff5d8f','#ff8fab','#c9184a','#ff4d6d'][Math.random()*4|0]);
+    document.body.appendChild(el);
+    const a=Math.random()*Math.PI*2,d=120+Math.random()*160;
+    const dx=Math.cos(a)*d,dy=Math.sin(a)*d;
+    el.animate([
+      {transform:'translate(-50%,-50%) scale(.4) rotate(0deg)',opacity:1},
+      {transform:'translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px)) scale(1.1) rotate('+(Math.random()*90-45)+'deg)',opacity:0}
+    ],{duration:700+Math.random()*350,easing:'ease-out'}).onfinish=()=>el.remove();
+  }
+}
+function flashFX(){
+  const f=document.getElementById('flash');
+  f.animate([{opacity:0},{opacity:.75},{opacity:0}],{duration:500,easing:'ease-out'});
+}
+function shakeFX(){
+  document.body.animate([
+    {transform:'translate(0,0)'},
+    {transform:'translate(-9px,6px)'},
+    {transform:'translate(8px,-5px)'},
+    {transform:'translate(-5px,3px)'},
+    {transform:'translate(0,0)'}
+  ],{duration:380});
+}
+
+/* kelime uçuşu */
+function fly(word,fx,fy,slot){
+  const flyer=document.createElement('div');flyer.className='flyer';
+  flyer.textContent=word;
+  flyer.style.left=fx+'px';flyer.style.top=fy+'px';
+  document.body.appendChild(flyer);
+  const r=slot.getBoundingClientRect();
+  const tx=(r.left+r.width/2)-fx,ty=(r.top+r.height/2)-fy;
+  const a=flyer.animate([
+    {transform:'translate(-50%,-50%) scale(.15) rotate(-24deg)',opacity:0},
+    {transform:'translate(-50%,-50%) scale(1.1) rotate(6deg)',opacity:1,offset:.22},
+    {transform:'translate(calc(-50% + '+tx+'px), calc(-50% + '+ty+'px)) scale(1) rotate(0deg)',opacity:1}
+  ],{duration:900,easing:'cubic-bezier(.25,.8,.3,1)',fill:'forwards'});
+  a.onfinish=()=>{
+    slot.classList.add('filled');
+    sfx('chime');
+    burst(r.left+r.width/2,r.top+r.height/2,['#ffd6e0','#ff8fab','#ffffff','#ffc2d1'],10,70);
+    flyer.remove();
+  };
+}
+
+/* balonlar */
+function spawnBalloons(){
+  for(let n=0;n<WORDS.length;n++){
+    const el=document.createElement('div');el.className='balloon';
+    const c=PAL[n%PAL.length];
+    el.style.setProperty('--c1',c[0]);
+    el.style.setProperty('--c2',c[1]);
+    el.style.width=(84+Math.random()*56)+'px';
+    el.style.left=(2+n*8.6+Math.random()*4)+'%';
+    el.style.animationDuration=(1.8+Math.random()*1.6)+'s';
+    el.style.animationDelay='-'+(Math.random()*3)+'s';
+    el.innerHTML='<div class="body"></div><div class="knot"></div><div class="string"></div>';
+    const b={
+      el,c1:c[0],c2:c[1],done:false,
+      y:-(100+Math.random()*1100),
+      speed:40+Math.random()*45
+    };
+    el.style.bottom=b.y+'px';
+    el.addEventListener('pointerdown',()=>{
+      if(b.done)return;b.done=true;popBalloon(b);
+    });
+    document.body.appendChild(el);
+    balloons.push(b);
+  }
+}
+function popBalloon(b){
+  const r=b.el.getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const el=b.el;
+  el.classList.add('pop');
+  setTimeout(()=>el.remove(),240);
+  balloons=balloons.filter(x=>x!==b);
+  sfx('pop');ring(cx,cy,3);
+  burst(cx,cy,[b.c1,b.c2,'#ffffff'],16,180);
+  hint.classList.add('hide');
+  const w=WORDS[idx],slot=slots[idx];
+  idx++;
+  fly(w,cx,cy,slot);
+  if(idx===WORDS.length)setTimeout(startBig,1300);
+}
+
+/* yükselme döngüsü */
+let last=performance.now();
+function rise(ts){
+  const dt=Math.min((ts-last)/1000,.05);last=ts;
+  const H=innerHeight;
+  for(const b of balloons){
+    b.y+=b.speed*dt;
+    if(b.y>H+320){b.y=-300-Math.random()*500;b.el.style.left=(3+Math.random()*85)+'%';}
+    b.el.style.bottom=b.y+'px';
+  }
+  requestAnimationFrame(rise);
+}
+
+/* dev balon */
+function startBig(){
+  hint2.classList.add('show');
+  const el=document.createElement('div');el.className='balloon big';
+  el.style.setProperty('--c1','#ff8fab');
+  el.style.setProperty('--c2','#c9184a');
+  el.innerHTML='<div class="body"></div><div class="knot"></div><div class="string"></div>';
+  el.style.transform='translate(-50%,-50%) translateY(125vh)';
+  document.body.appendChild(el);
+  el.animate([
+    {transform:'translate(-50%,-50%) translateY(125vh) rotate(-4deg)'},
+    {transform:'translate(-50%,-50%) translateY(0) rotate(0deg)',offset:.82},
+    {transform:'translate(-50%,-50%) translateY(-3vh) rotate(2deg)',offset:.9},
+    {transform:'translate(-50%,-50%) translateY(0) rotate(0deg)'}
+  ],{duration:3000,easing:'cubic-bezier(.3,.75,.35,1)',fill:'forwards'});
+  el.addEventListener('pointerdown',()=>{
+    if(bigDone)return;bigDone=true;bigPop(el);
+  });
+}
+function bigPop(el){
+  const r=el.getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  el.classList.add('pop');
+  setTimeout(()=>el.remove(),240);
+  hint2.classList.remove('show');
+  sfx('boom');flashFX();shakeFX();ring(cx,cy,10);
+  burst(cx,cy,['#ff8fab','#c9184a','#ffffff','#ffd166','#ff5d8f'],80,420);
+  heartBurst(cx,cy);
+  setTimeout(showFinale,400);
+}
+
+/* final */
+function showFinale(){
+  if(finaleOn)return;finaleOn=true;
+  const sb=sent.getBoundingClientRect().bottom;
+  finale.style.paddingTop=Math.min(sb+28,innerHeight*0.55)+'px';
+  finale.classList.add('show');
+  sfx('chime');
+  setInterval(spawnHeart,650);
+}
+function spawnHeart(){
+  if(!finaleOn)return;
+  const el=document.createElement('div');el.className='fh';
+  const s=13+Math.random()*17;
+  el.style.width=s+'px';el.style.height=s+'px';
+  el.style.left=(2+Math.random()*94)+'vw';
+  el.style.bottom='-40px';
+  el.innerHTML=HEART(['#ff5d8f','#ff8fab','#c9184a','#ff4d6d'][Math.random()*4|0]);
+  document.body.appendChild(el);
+  const dx=Math.random()*160-80;
+  el.animate([
+    {transform:'translateY(0) rotate(0deg)',opacity:0},
+    {opacity:1,offset:.08},
+    {opacity:.9,offset:.85},
+    {transform:'translateY('+( -(innerHeight+140))+'px) translateX('+dx+'px) rotate('+(Math.random()*60-30)+'deg)',opacity:0}
+  ],{duration:4200+Math.random()*3800,easing:'linear'}).onfinish=()=>el.remove();
+}
+
+spawnBalloons();
+requestAnimationFrame(rise);
+</script>
+</body>
+</html>
